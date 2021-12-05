@@ -47,9 +47,6 @@ getFirstBingo();
 function getFirstBingo() {
 	let numberIndex = 0;
 	limitedChosenNumbers = chosenNumbers.slice(0, numberIndex);
-	const resultFound = false;
-	let luckyBoard;
-	let luckyNumbers;
 
 	for (let i = 0; i < chosenNumbers.length; i++) {
 		// go through all boards
@@ -73,28 +70,6 @@ function getFirstBingo() {
 		limitedChosenNumbers = chosenNumbers.slice(0, numberIndex);
 	}
 }
-
-// get all numbers which didn't match from the winner board and sum them
-// if number from board is not in the list then add that number to sum
-// const {luckyBoard, luckyNumbers} = getFirstBingo();
-const bingoResult = getFirstBingo();
-const luckyBoard = bingoResult.board;
-const luckyNumbers = bingoResult.limitedChosenNumbers.map((x) => parseInt(x));
-let sumOfUnmatched = 0;
-
-for (let i = 0; i < luckyBoard.length; i++) {
-	sumOfUnmatched += luckyBoard[i].map((stringVar) => parseInt(stringVar))
-		.filter((x) => !luckyNumbers.includes(x))
-		.reduce(
-			(previousValue, currentValue) => previousValue + currentValue,
-			0
-		);
-}
-// get score by => sumOfUnmatched * last chosen number
-const lastChosenNumber = luckyNumbers[luckyNumbers.length-1]
-console.log("Score is: " + sumOfUnmatched * lastChosenNumber);
-
-
 function checkRowForMatch(rowToCheck, numbersToCheckAgainst) {
 	return rowToCheck.every((val) => numbersToCheckAgainst.includes(val));
 }
@@ -106,4 +81,78 @@ function getRowArray(row) {
 		.map((r) => r.replace(/(\r\n|\n|\r)/gm, ""));
 }
 
+// get all numbers which didn't match from the winner board and sum them
+// if number from board is not in the list then add that number to sum
+// const {luckyBoard, luckyNumbers} = getFirstBingo();
+const bingoResult = getFirstBingo();
+const luckyBoard = bingoResult.board;
+const luckyNumbers = bingoResult.limitedChosenNumbers.map((x) => parseInt(x));
+let sumOfUnmatched = 0;
+
+for (let i = 0; i < luckyBoard.length; i++) {
+	sumOfUnmatched += luckyBoard[i]
+		.map((stringVar) => parseInt(stringVar))
+		.filter((x) => !luckyNumbers.includes(x))
+		.reduce(
+			(previousValue, currentValue) => previousValue + currentValue,
+			0
+		);
+}
+
+// get score by => sumOfUnmatched * last chosen number
+const lastChosenNumber = luckyNumbers[luckyNumbers.length - 1];
+console.log("Score is: " + sumOfUnmatched * lastChosenNumber);
+
 // Part2
+// figure out which board will win last and choose that one.
+
+function getLastBingo() {
+	let numberIndex = 0;
+	limitedChosenNumbers = chosenNumbers.slice(0, numberIndex);
+	const boardsLeft = allBoards;
+	for (let i = 0; i < chosenNumbers.length; i++) {
+		// go through all boards
+
+		for (const board of boardsLeft) {
+			// search for a match in rows or columns
+			for (let j = 0; j < board.length; j++) {
+				const column = getMatrixColumn(board, j);
+				const row = board[j];
+				if (
+					checkRowForMatch(row, limitedChosenNumbers) ||
+					checkRowForMatch(column, limitedChosenNumbers)
+				) {
+					// remove the board from the boards that are left until only one remains
+					if (boardsLeft.length == 1) {
+						return { board, limitedChosenNumbers };
+					} else {
+						const indexToRemove = boardsLeft.indexOf(board);
+						if (indexToRemove !== -1) {
+							boardsLeft.splice(indexToRemove, 1);
+						}
+					}
+				}
+			}
+			// if(resultFound) {return 1; break;}
+		}
+		// if no match found with current slice of chosen numbers and went through all boards, take bigger slice +1 of numbers
+		numberIndex++;
+		limitedChosenNumbers = chosenNumbers.slice(0, numberIndex);
+	}
+}
+const lastBingoResult = getLastBingo();
+const lastBoard = lastBingoResult.board;
+const numbers = lastBingoResult.limitedChosenNumbers.map((x) => parseInt(x));
+const lastNumber = numbers[numbers.length - 1];
+
+sumOfUnmatched = 0;
+
+for (let i = 0; i < lastBoard.length; i++) {
+	sumOfUnmatched += lastBoard[i]
+		.map((x) => parseInt(x))
+		.filter((x) => !(numbers.includes(x)))
+		.reduce((prevValue, currentValue) => prevValue + currentValue, 0);
+}
+
+
+console.log(`Result is ${sumOfUnmatched * lastNumber}`);
